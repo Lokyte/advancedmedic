@@ -31,23 +31,66 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Home'),
       ),
-      body: FutureBuilder(
+      body: FutureBuilder<User?>(
         future: FirebaseAuth.instance.authStateChanges().first,
         builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              final user = FirebaseAuth.instance.currentUser;
-              if (user != null && user.emailVerified) {
-                logger.i('You are verified!');
-                return const Text('You are verified!');
-              } else {
-                logger.i('You are not verified!');
-                return const Text('You are not verified!');
-              }
-            default:
-              return const Text('Loading...');
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.connectionState == ConnectionState.done) {
+            final user = snapshot.data;
+            if (user != null && user.emailVerified) {
+              return const Center(child: Text('You are a verified user!'));
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const VerifyEmailView(),
+                  ),
+                );
+              });
+              return const Center(
+                  child: Text('Redirecting to verify email...'));
+            }
+          } else {
+            return const Center(child: Text('Something went wrong!'));
           }
         },
+      ),
+    );
+  }
+}
+
+class VerifyEmailView extends StatefulWidget {
+  const VerifyEmailView({super.key});
+
+  @override
+  State<VerifyEmailView> createState() => _VerifyEmailViewState();
+}
+
+class _VerifyEmailViewState extends State<VerifyEmailView> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Verify Email'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Please verify your email address'),
+            TextButton(
+              onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                await user?.sendEmailVerification();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Verification email sent!')),
+                );
+              },
+              child: const Text('Send email verification'),
+            ),
+          ],
+        ),
       ),
     );
   }

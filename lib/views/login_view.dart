@@ -2,6 +2,7 @@ import 'package:advancedmedic/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -13,6 +14,7 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  final Logger _logger = Logger();
 
   @override
   void initState() {
@@ -28,8 +30,6 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  // const RegisterView({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,44 +43,48 @@ class _LoginViewState extends State<LoginView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              return Column(
-                children: [
-                  TextField(
-                    controller: _email,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email here',
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextField(
+                      controller: _email,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter your email here',
+                      ),
                     ),
-                  ),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your password here',
+                    TextField(
+                      controller: _password,
+                      obscureText: true,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter your password here',
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
-                      try {
-                        final userCredential = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        );
-                        print(userCredential);
-                      } catch (e) {
-                        print(e);
-                      }
-                    },
-                    child: const Text('Login'),
-                  ),
-                ],
+                    TextButton(
+                      onPressed: () async {
+                        final email = _email.text;
+                        final password = _password.text;
+                        try {
+                          final userCredential = await FirebaseAuth.instance
+                              .signInWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          );
+                          _logger.i(userCredential);
+                        } catch (e) {
+                          _logger.e('Login failed', e);
+                        }
+                      },
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
               );
             default:
               return const Text('Loading...');
