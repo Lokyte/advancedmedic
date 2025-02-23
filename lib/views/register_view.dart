@@ -1,3 +1,4 @@
+import 'package:advancedmedic/constants/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart'; // Correct import for the logger package
@@ -80,7 +81,7 @@ class _RegisterViewState extends State<RegisterView> {
                             'User registered: $userCredential'); // Log success
                         // Navigate after successful registration
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/login',
+                          loginRoute,
                           (route) => false,
                         );
                       } on FirebaseAuthException catch (e) {
