@@ -37,6 +37,7 @@ class _LoginViewState extends State<LoginView> {
         title: const Text('Login'),
       ),
       body: FutureBuilder(
+        // Moved FutureBuilder back in
         future: Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
         ),
