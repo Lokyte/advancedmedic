@@ -4,11 +4,8 @@ import 'package:advancedmedic/views/login_view.dart';
 import 'package:advancedmedic/views/register_view.dart';
 import 'package:advancedmedic/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-// ignore: duplicate_import
-import 'package:advancedmedic/constants/routes.dart';
 import 'dart:developer' as devtools show log;
 
 void main() async {
@@ -26,6 +23,7 @@ void main() async {
       routes: {
         loginRoute: (context) => const LoginView(),
         registerRoute: (context) => const RegisterView(),
+        verifyEmailRoute: (context) => const VerifyEmailView(),
         notesRoute: (context) => const NotesView(),
       },
     ),
@@ -48,17 +46,12 @@ class HomePage extends StatelessWidget {
               if (user != null) {
                 if (user.emailVerified) {
                   return const NotesView();
-                  // If email is not verified, navigate to VerifyEmailView
                 } else {
                   return const VerifyEmailView();
                 }
               } else {
-                // If email is verified, navigate to LoginView
                 return const LoginView();
               }
-
-              // ignore: dead_code
-              return const Text('Done');
             default:
               return const CircularProgressIndicator();
           }
@@ -90,12 +83,10 @@ class _NotesViewState extends State<NotesView> {
                   if (shouldLogout) {
                     await FirebaseAuth.instance.signOut();
                     Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login/',
+                      loginRoute,
                       (_) => false,
                     );
                   }
-                // devtools.log(shouldLogout.toString());
-                // break;
               }
               devtools.log(value.toString());
             },

@@ -1,7 +1,7 @@
 import 'package:advancedmedic/constants/routes.dart';
+import 'package:advancedmedic/utilities/show_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:advancedmedic/firebase_options.dart';
-// ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -36,9 +36,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
+      appBar: AppBar(title: const Text('Login')),
       body: FutureBuilder(
         // Moved FutureBuilder back in
         future: Firebase.initializeApp(
@@ -77,9 +75,9 @@ class _LoginViewState extends State<LoginView> {
                         try {
                           await FirebaseAuth.instance
                               .signInWithEmailAndPassword(
-                            email: email,
-                            password: password,
-                          );
+                                email: email,
+                                password: password,
+                              );
                           // ignore: use_build_context_synchronously
                           Navigator.of(context).pushNamedAndRemoveUntil(
                             notesRoute,
@@ -87,10 +85,15 @@ class _LoginViewState extends State<LoginView> {
                           );
                         } on FirebaseAuthException catch (e) {
                           if (e.code == 'user-not-found') {
-                            devtools.log('No user found for that email.');
+                            await showErrorDialog(context, 'User not found');
+                            // devtools.log('No user found for that email.');
                           } else if (e.code == 'wrong-password') {
-                            devtools.log('Wrong password .');
+                            await showErrorDialog(context, 'Wrong Credentials');
+                          } else {
+                            await showErrorDialog(context, 'Error: ${e.code}');
                           }
+                        } catch (e) {
+                          await showErrorDialog(context, e.toString());
                         }
                       },
                       child: const Text('Login'),
@@ -98,7 +101,9 @@ class _LoginViewState extends State<LoginView> {
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil(
-                            registerRoute, (route) => false);
+                          registerRoute,
+                          (route) => false,
+                        );
                       },
                       child: const Text('Not registered yet? Register here!'),
                     ),
