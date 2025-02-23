@@ -1,8 +1,8 @@
-import 'package:advancedmedic/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:advancedmedic/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'dart:developer' as devtools show log;
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -77,9 +77,16 @@ class _LoginViewState extends State<LoginView> {
                             email: email,
                             password: password,
                           );
-                          _logger.i(userCredential);
-                        } catch (e) {
-                          _logger.e('Login failed', e);
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/notes',
+                            (route) => false,
+                          );
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'user-not-found') {
+                            devtools.log('No user found for that email.');
+                          } else if (e.code == 'wrong-password') {
+                            devtools.log('Wrong password .');
+                          }
                         }
                       },
                       child: const Text('Login'),

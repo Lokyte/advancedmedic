@@ -3,6 +3,7 @@ import 'package:advancedmedic/views/login_view.dart';
 import 'package:advancedmedic/views/register_view.dart';
 import 'package:advancedmedic/views/verify_email_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
@@ -14,7 +15,7 @@ void main() async {
   );
   runApp(
     MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Advanced Medic',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -22,7 +23,7 @@ void main() async {
       routes: {
         '/login/': (context) => const LoginView(),
         '/register/': (context) => const RegisterView(),
-        // '/verify-email/': (context) => const VerifyEmailView(),
+        '/notes/': (context) => const NotesView(),
       },
     ),
   );
@@ -82,10 +83,13 @@ class _NotesViewState extends State<NotesView> {
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
-                  final shouldLogout = await showLogOutDialog(
-                      context); // TODO: Handle this case.
+                  final shouldLogout = await showLogOutDialog(context);
                   if (shouldLogout) {
                     await FirebaseAuth.instance.signOut();
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/login/',
+                      (_) => false,
+                    );
                   }
                 // devtools.log(shouldLogout.toString());
                 // break;
@@ -94,7 +98,7 @@ class _NotesViewState extends State<NotesView> {
             },
             itemBuilder: (context) {
               return const [
-                const PopupMenuItem<MenuAction>(
+                PopupMenuItem<MenuAction>(
                   value: MenuAction.logout,
                   child: Text('Logout'),
                 )
