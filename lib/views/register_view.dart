@@ -1,5 +1,9 @@
+import 'dart:math' as devtools;
+
 import 'package:advancedmedic/constants/routes.dart';
+import 'package:advancedmedic/utilities/show_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart'; // Correct import for the logger package
 
@@ -33,9 +37,7 @@ class _RegisterViewState extends State<RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Add padding for better layout
         child: Column(
@@ -65,58 +67,48 @@ class _RegisterViewState extends State<RegisterView> {
             _isLoading // Show loading indicator while registering
                 ? const CircularProgressIndicator()
                 : TextButton(
-                    onPressed: () async {
-                      setState(() {
-                        _isLoading = true; // Set loading to true
-                      });
-                      final email = _email.text;
-                      final password = _password.text;
-                      try {
-                        final userCredential = await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        );
-                        _logger.i(
-                            'User registered: $userCredential'); // Log success
-                        // Navigate after successful registration
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          loginRoute,
-                          (route) => false,
-                        );
-                      } on FirebaseAuthException catch (e) {
-                        String errorMessage =
-                            "An error occurred during registration."; // Default error message
-                        if (e.code == 'weak-password') {
-                          errorMessage = 'The password provided is too weak.';
-                        } else if (e.code == 'email-already-in-use') {
-                          errorMessage =
-                              'The account already exists for that email.';
-                        } else if (e.code == 'invalid-email') {
-                          errorMessage = 'Invalid email entered.';
-                        }
-                        // Show error message to the user
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(errorMessage)),
-                        );
-                        _logger.e(
-                            'Registration error: $errorMessage'); // Log error
-                      } finally {
-                        setState(() {
-                          _isLoading = false; // Set loading back to false
-                        });
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true; // Set loading to true
+                    });
+                    final email = _email.text;
+                    final password = _password.text;
+                    try {
+                      await FirebaseAuth.instance
+                          .createUserWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          );
+                      final user = FirebaseAuth.instance.currentUser;
+                      await user?.sendEmailVerification();
+                      Navigator.of(context).pushNamed(verifyEmailRoute);
+                    } on FirebaseAuthException catch (e) {
+                      if (e.code == 'Weak-password') {
+                        await showErrorDialog(context, 'Weak password');
+                      } else if (e.code == 'Email already in use') {
+                        showErrorDialog(context, 'Email already in use');
+                      } else if (e.code == 'invalid email') {
+                        showErrorDialog(context, 'Invalid email address');
+                      } else {
+                        showErrorDialog(context, 'Error: ${e.code}');
                       }
-                    },
-                    child: const Text('Register'),
-                  ),
+                    } catch (e) {
+                      showErrorDialog(context, e.toString());
+                    } finally {
+                      setState(() {
+                        _isLoading = false; // Reset loading state
+                      });
+                    }
+                  },
+                  child: const Text('Register'),
+                ),
 
             const SizedBox(height: 16), // Add spacing between buttons
             TextButton(
               onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/login',
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
               },
               child: const Text('Already Registered? Login here!'),
             ),
