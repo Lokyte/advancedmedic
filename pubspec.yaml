@@ -11,14 +11,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  logger: ^1.4.0
-  firebase_auth: ^4.11.1
-  firebase_core: ^2.18.0
+  logger: ^2.5.0
+  firebase_auth: ^5.5.0
+  firebase_core: ^3.12.0
+  firebase_database: ^11.3.3
+  firebase_storage: ^12.4.3
+  firebase_auth_web: ^5.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
