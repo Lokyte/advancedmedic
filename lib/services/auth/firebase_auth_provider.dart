@@ -1,9 +1,9 @@
 import 'package:advancedmedic/services/auth/auth_exceptions.dart';
 import 'package:advancedmedic/services/auth/auth_user.dart';
-import 'package:advancedmedic/services/auth_user.dart';
+import 'package:advancedmedic/services/auth/auth_provider.dart';
+
 import 'package:firebase_auth/firebase_auth.dart'
-    show AuthProvider, FirebaseAuth, FirebaseAuthException, User;
-import 'package:firebase_core/firebase_core.dart';
+    show FirebaseAuth, FirebaseAuthException;
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
@@ -16,16 +16,16 @@ class FirebaseAuthProvider implements AuthProvider {
         email: email,
         password: password,
       );
-      final user = FirebaseAuth.instance.currentUser;
+      final user = currentUser;
       if (user != null) {
-        return _userFromFirebase(user);
+        return user;
       } else {
-        throw UserNotLoggedInAuthException();
+        throw UserNotFoundAuthException();
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
+      if (e.code == 'Weak-password') {
         throw WeakPasswordAuthException();
-      } else if (e.code == 'email-already-in-use') {
+      } else if (e.code == 'Email-already-in-use') {
         throw EmailAlreadyInUseAuthException();
       } else if (e.code == 'invalid-email') {
         throw InvalidEmailAuthException();
@@ -41,49 +41,51 @@ class FirebaseAuthProvider implements AuthProvider {
   AuthUser? get currentUser {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      return _userFromFirebase(user);
+      return AuthUser.fromFirebase(user);
     } else {
       return null;
     }
   }
 
   @override
-  Future<AuthUser> login({
-    required String email,
+  Future<AuthUser> logIn({
+    required String email, 
     required String password,
-  }) async {
+    }) async{
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
+     await  FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email, 
         password: password,
-      );
-      final user = currentUser;
+        );
+            final user = currentUser;
       if (user != null) {
         return user;
       } else {
-        throw UserNotLoggedInAuthException();
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
         throw UserNotFoundAuthException();
-      } else if (e.code == 'wrong-password') {
-        throw WrongPasswordAuthException();
-      } else {
-        throw GenericAuthException();
       }
-    } catch (_) {
-      throw GenericAuthException();
+      }on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw UserNotFoundAuthException()                    
+      } else if (e.code == 'wrong-password') {
+         throw WeakPasswordAuthException();                  
+      } else {
+        throw GenericAuthException();                   
+      }
+     } catch (_) {
+        throw  GenericAuthException(); 
+
+    }
     }
   }
 
   @override
-  Future<void> logout() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseAuth.instance.signOut();
-    } else {
-      throw UserNotLoggedInAuthException();
-    }
+  Future<void> logOut() async {
+   final user = FirebaseAuth.instance.currentUser;
+   if (user!=null){
+    await FirebaseAuth.instance.signOut();
+   } else{
+    throw UserNotLoggedInAuthException();
+   }
   }
 
   @override
@@ -92,21 +94,7 @@ class FirebaseAuthProvider implements AuthProvider {
     if (user != null) {
       await user.sendEmailVerification();
     } else {
-      throw UserNotLoggedInAuthException();
+      throw UserNotFoundAuthException();
     }
   }
 
-  // Helper method to convert Firebase User to AuthUser
-  AuthUser _userFromFirebase(User user) {
-    return AuthUser(
-      id: user.uid,
-      email: user.email,
-      isEmailVerified: user.emailVerified,
-    );
-  }
-
-  @override
-  String get providerId => 'firebase'; // Provide a meaningful provider ID
-}
-
-class UserNotLoggedInAuthException {}

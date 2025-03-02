@@ -1,11 +1,7 @@
-import 'dart:math' as devtools;
-
 import 'package:advancedmedic/constants/routes.dart';
 import 'package:advancedmedic/utilities/show_error_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart'; // Correct import for the logger package
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -17,7 +13,6 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  final _logger = Logger(); // Correct usage of the logger package
   bool _isLoading = false; // Add a loading state
 
   @override
@@ -84,26 +79,23 @@ class _RegisterViewState extends State<RegisterView> {
                       Navigator.of(context).pushNamed(verifyEmailRoute);
                     } on FirebaseAuthException catch (e) {
                       if (e.code == 'Weak-password') {
-                        await showErrorDialog(context, 'Weak password');
-                      } else if (e.code == 'Email already in use') {
-                        showErrorDialog(context, 'Email already in use');
-                      } else if (e.code == 'invalid email') {
-                        showErrorDialog(context, 'Invalid email address');
+                        await showErrorDialog(context, 'Weak-password');
+                      } else if (e.code == 'Email-already-in-use') {
+                        showErrorDialog(context, 'Email already in use ');
+                      } else if (e.code == 'invalid-email') {
+                        showErrorDialog(
+                          context,
+                          'This is an invalid email address',
+                        );
                       } else {
                         await showErrorDialog(context, 'Error: ${e.code}');
                       }
                     } catch (e) {
-                      showErrorDialog(context, e.toString());
-                    } finally {
-                      setState(() {
-                        _isLoading = false; // Reset loading state
-                      });
+                      await showErrorDialog(context, e.toString());
                     }
                   },
                   child: const Text('Register'),
                 ),
-
-            const SizedBox(height: 16), // Add spacing between buttons
             TextButton(
               onPressed: () {
                 Navigator.of(
