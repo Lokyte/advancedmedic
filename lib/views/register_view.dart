@@ -1,6 +1,7 @@
 import 'package:advancedmedic/constants/routes.dart';
+import 'package:advancedmedic/services/auth/auth_exceptions.dart';
+import 'package:advancedmedic/services/auth/auth_service.dart';
 import 'package:advancedmedic/utilities/show_error_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterView extends StatefulWidget {
@@ -13,7 +14,6 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
-  bool _isLoading = false; // Add a loading state
 
   @override
   void initState() {
@@ -57,45 +57,32 @@ class _RegisterViewState extends State<RegisterView> {
                 border: OutlineInputBorder(), // Add border for better UX
               ),
             ),
-            const SizedBox(height: 24), // Add spacing before buttons
-
-            _isLoading // Show loading indicator while registering
-                ? const CircularProgressIndicator()
-                : TextButton(
-                  onPressed: () async {
-                    setState(() {
-                      _isLoading = true; // Set loading to true
-                    });
-                    final email = _email.text;
-                    final password = _password.text;
-                    try {
-                      await FirebaseAuth.instance
-                          .createUserWithEmailAndPassword(
-                            email: email,
-                            password: password,
-                          );
-                      final user = FirebaseAuth.instance.currentUser;
-                      await user?.sendEmailVerification();
-                      Navigator.of(context).pushNamed(verifyEmailRoute);
-                    } on FirebaseAuthException catch (e) {
-                      if (e.code == 'Weak-password') {
-                        await showErrorDialog(context, 'Weak-password');
-                      } else if (e.code == 'Email-already-in-use') {
-                        showErrorDialog(context, 'Email already in use ');
-                      } else if (e.code == 'invalid-email') {
-                        showErrorDialog(
-                          context,
-                          'This is an invalid email address',
-                        );
-                      } else {
-                        await showErrorDialog(context, 'Error: ${e.code}');
-                      }
-                    } catch (e) {
-                      await showErrorDialog(context, e.toString());
-                    }
-                  },
-                  child: const Text('Register'),
-                ),
+            TextButton(
+              onPressed: () async {
+                final email = _email.text;
+                final password = _password.text;
+                try {
+                  await AuthService.firebase().createUser(
+                    email: email,
+                    password: password,
+                  );
+                  AuthService.firebase().sendEmailVerification;
+                  Navigator.of(context).pushNamed(verifyEmailRoute);
+                } on WeakPasswordAuthException {
+                  await showErrorDialog(context, 'Weak-password');
+                } on EmailAlreadyInUseAuthException {
+                  await showErrorDialog(context, 'Email already in use ');
+                } on InvalidEmailAuthException {
+                  await showErrorDialog(
+                    context,
+                    'This is an invalid email address',
+                  );
+                } on GenericAuthException {
+                  await showErrorDialog(context, 'Failed to rregister');
+                }
+              },
+              child: const Text('Register'),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.of(

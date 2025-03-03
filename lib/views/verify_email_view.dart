@@ -1,5 +1,5 @@
 import 'package:advancedmedic/constants/routes.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:advancedmedic/services/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class VerifyEmailView extends StatefulWidget {
@@ -17,24 +17,20 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
       body: Column(
         children: [
           const Text(
-            "'We've sent you an email verification. please open to verify your email address.",
+            "We've sent you an email verification. please open to verify your email address.",
           ),
           const Text(
             "If you haven't received the email, please press the button below to resend.",
           ),
           TextButton(
             onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
-              await user?.sendEmailVerification();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Verification email sent!')),
-              );
+              await AuthService.firebase().sendEmailVerification();
             },
             child: const Text('Send email verification'),
           ),
           TextButton(
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
+              await AuthService.firebase().logOut();
               Navigator.of(
                 context,
               ).pushNamedAndRemoveUntil(registerRoute, (route) => false);
